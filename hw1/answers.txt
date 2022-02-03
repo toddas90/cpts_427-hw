@@ -4,4 +4,8 @@
 
 3. Benetta has the most failed attempts (16)
 
-4. 
+4. The password salt is (selective) 
+
+I implemented a serial and parallel algorithm for brute forcing the salt
+finding. The problem with the parallel code is that I don't know how to
+exit the loop when a thread has found the salt, so it just keeps going.

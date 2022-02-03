@@ -1,0 +1,3 @@
+The executable takes a password file and a wordlist.
+
+ex: ./executable passwords2.txt wordlist.txt
