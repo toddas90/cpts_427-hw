@@ -2,6 +2,7 @@ use std::env;
 use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader};
+use rayon::prelude::*;
 
 #[derive(Debug)]
 struct Account {
