@@ -1,9 +1,10 @@
-use std::env;
+use std::{env, io};
 use std::fs::File;
-use std::io;
 use std::io::{BufRead, BufReader};
+use std::time::Instant;
 use rayon::prelude::*;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 struct Account {
     uid: u16,
@@ -15,7 +16,7 @@ struct Account {
 }
 
 impl Account {
-    fn contains(&self, other: &str) -> bool {
+    fn contains_hash(&self, other: &str) -> bool {
         self.hash == other
     }
 }
@@ -63,53 +64,74 @@ fn load_wordlist() -> Vec<String> {
     parse_wordlist(&word_path).expect("Unable to parse file!")
 }
 
-fn hasher_md5(in_pass: String, in_salt: &str) -> String {
-    let str_cat = in_pass + in_salt;
+fn hasher_md5(in_pass: &str, in_salt: &str) -> String {
+    let str_cat = in_pass.to_string() + in_salt;
     let new_hash = md5::compute(&str_cat);
     format!("{:x}", new_hash)
 }
 
-fn cracking_time(accounts: &mut Vec<Account>, words: &[String], known_salt: Option<String>) {
-    let mut hash: String = "".to_owned();
+fn find_salt<'a>(user: &Account, words : &'a [String]) -> Option<&'a String> {
+    for i in words {
+        let a = words.par_iter().find_any(|a| {
+            user.hash == hasher_md5(i, a)
+        });
+        if a.is_some() {return a;}
+    }
+    None
+    // for i in words {
+    //     for j in words {
+    //         if user.hash == hasher_md5(i, j) {
+    //             return Some(j);
+    //         }
+    //     }
+    // }
+    // None
+}
 
-    let quicker = match known_salt.as_ref() {
-        Some(_k) => true,
-        None => false,
-    };
+fn find_password<'a> (user: &Account, words: &'a [String], salt: & str) -> Option<&'a String> {
+    let a = words.par_iter()
+        .find_any(|a| {
+            user.hash == hasher_md5(a, salt)
+        });
+    if a.is_some() {return a;}
+    None
 
-    if quicker {
-        for i in words {
-            hash = hasher_md5(i.to_string(), &known_salt.as_ref().unwrap());
-            for acc in &mut *accounts {
-                if acc.contains(&hash) {
-                    acc.password = i.to_string();
-                    acc.salt = known_salt.as_ref().unwrap().to_string();
-                    println!("{:#?}", acc);
-                    break;
-                }
+    // for i in words {
+    //     if user.hash == hasher_md5(i, salt) {
+    //         return Some(i);
+    //     }
+    // }
+    // None
+}
+
+fn cracking_time(accounts: &mut Vec<Account>, words: &[String]) {
+    let mut salt: &str = &find_salt(&accounts[0], words).unwrap();
+
+    for i in 0..accounts.len() {
+        match find_password(&accounts[i], words, &salt) {
+            Some(s) => {
+                accounts[i].salt = salt.to_string();
+                accounts[i].password = s.to_string();
+                continue;
+            },
+            None => {
+                salt = &find_salt(&accounts[i], words).unwrap();
+                accounts[i].password = find_password(&accounts[i], words, &salt).unwrap().to_string();
+                accounts[i].salt = salt.to_string();
             }
-        }
-    } else {
-        for i in 0..words.len() {
-            for k in i..words.len() {
-                hash = hasher_md5(words[i].to_string(), &words[k]);
-                for acc in &mut *accounts {
-                    if acc.contains(&hash) {
-                        acc.password = words[i].to_string();
-                        acc.salt = words[k].to_string();
-                        println!("{:#?}", acc);
-                        break;
-                    }
-                }
-            }
-        }
+        };
     }
 }
 
 fn main() {
     let mut accounts = load_accounts();
     let words = load_wordlist();
-    cracking_time(&mut accounts, &words, env::args().nth(3));
-    //println!("{:#?}", accounts);
+
+    let now = Instant::now();
+    cracking_time(&mut accounts, &words);
+    let elapsed = now.elapsed();
+
+    println!("{:#?}", accounts);
+    println!("Execution Time: {:.2?}", elapsed);
     println!("All Done!");
 }
