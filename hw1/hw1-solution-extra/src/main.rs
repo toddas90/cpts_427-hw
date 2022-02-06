@@ -124,7 +124,8 @@ fn cracking_time(accounts: &mut Vec<Account>, words: &[String]) {
                 continue;
             }
             None => {
-                salt = find_salt(user, words).unwrap();
+                // This line here is doing extra work.
+                salt = find_salt(user, words).expect("Couldn't find salt/password in wordfile");
                 user.password = find_password(user, words, salt).unwrap().to_string();
                 user.salt = salt.to_string();
             }
