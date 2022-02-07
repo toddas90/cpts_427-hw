@@ -6,6 +6,10 @@
 
 4. The password salt is (selective) 
 
-I implemented a serial and parallel algorithm for brute forcing the salt
-finding. The problem with the parallel code is that I don't know how to
-exit the loop when a thread has found the salt, so it just keeps going.
+I have a program that just gets the salt then exits. Then I have another one
+that I think is a lot better. It's still specific to this assignment, but it
+cracks all of the passwords and prints them out instead of just finding the
+salt. The executables are in their respective folders. They are compiled for
+linux, and they both expect a password file and wordlist.
+
+EX: ./executable password2.txt wordlist.txt
