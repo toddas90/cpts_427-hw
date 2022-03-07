@@ -1,6 +1,10 @@
 1. https://www.dcode.fr/caesar-cipher
 Answer: Sundiver
 I copied the text into the solver. I knew it was probably a caesar cipher
-because it was said to be a monoalphabetic cipher.
+because it was said to be a monoalphabetic substitution cipher.
 
-2.
+2. https://www.dcode.fr/monoalphabetic-substitution
+Decryption alphabet: AOINLEDFCGPUBMTHZJSXWKYVRQ
+Encryption alphabet: AMIGFHJPCRVENDBKZYSOLXUTWQ
+I found this neat decryptor website. I found the alphabets using it by copying
+a small snippet of the text into it.
